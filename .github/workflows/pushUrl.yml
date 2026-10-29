@@ -5,6 +5,7 @@ name: pushUrl
 # 两种触发方式：一、push代码，二、每天国际标准时间23点（北京时间+8即早上7点）运行
 on:
   push:
+    branches: [main]
   schedule:
     - cron: '0 23 * * *' # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/events-that-trigger-workflows#scheduled-events-schedule
   workflow_dispatch:
@@ -19,18 +20,25 @@ on:
   # schedule:
   #   - cron: '*/5 * * * *' # 每5分钟一次，测试用
 
+permissions:
+  contents: read
+concurrency:
+  group: push-url-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   bot:
-    runs-on: ubuntu-latest # 运行环境为最新版的Ubuntu
+    timeout-minutes: 5
+    runs-on: ubuntu-24.04
     steps:
       - name: 'Checkout codes' # 步骤一，获取仓库代码
         uses: actions/checkout@v7
       # - name: 'Run baiduPush' # 步骤二，执行sh命令文件
       #   run: npm install && npm run baiduPush # 运行目录是仓库根目录
-      - name: Set up Python 3.8
+      - name: Set up Python 3.12
         uses: actions/setup-python@v7
         with:
-          python-version: 3.8
+          python-version: '3.12'
 
       - name: Install requests
         run: pip install requests
@@ -58,4 +66,3 @@ jobs:
             echo "请前往 Github Action Secrets 配置 URL:"
             echo "详情参见: 'https://www.ghlcode.cn/fe032806-5362-4d82-b746-a0b26ce8b9d9'"
           fi
-      

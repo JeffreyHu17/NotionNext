@@ -3,9 +3,13 @@ name: CI
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [main]
   push:
     branches: [main]
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -13,6 +17,7 @@ concurrency:
 
 jobs:
   lint-and-types:
+    timeout-minutes: 15
     name: Lint & type-check
     runs-on: ubuntu-latest
     steps:
@@ -26,6 +31,7 @@ jobs:
       - run: yarn type-check
 
   test:
+    timeout-minutes: 15
     name: Unit tests
     runs-on: ubuntu-latest
     steps:
@@ -38,6 +44,7 @@ jobs:
       - run: yarn test --passWithNoTests
 
   lockfile:
+    timeout-minutes: 15
     name: Lockfile consistency
     runs-on: ubuntu-latest
     steps:
@@ -49,6 +56,8 @@ jobs:
       - run: yarn deps:check-lockfile
 
   docs-site:
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    timeout-minutes: 15
     name: VitePress build
     runs-on: ubuntu-latest
     steps:
